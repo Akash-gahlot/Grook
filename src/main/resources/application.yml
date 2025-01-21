@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: App
+  security:
+    oauth2:
+      client:
+        registration:
+          azure:
+            client-id: ${AZURE_CLIENT_ID}
+            client-secret: ${AZURE_CLIENT_SECRET}
+            scope: openid, profile, email
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            authorization-grant-type: authorization_code
+        provider:
+          azure:
+            authorization-uri: ${AZURE_AUTH_URI}
+            token-uri: ${AZURE_TOKEN_URI}
+            user-info-uri: ${AZURE_USER_INFO_URI}
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: native
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: ${PORT:8080}
