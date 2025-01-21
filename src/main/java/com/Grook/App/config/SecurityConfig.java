@@ -16,6 +16,9 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
@@ -60,13 +63,12 @@ public class SecurityConfig {
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestResolver(customizeAuthorizationRequestResolver(resolver)))
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userAuthoritiesMapper(authorities -> authorities))
+                                .oidcUserService(this::oidcUserService))
                         .successHandler((request, response, authentication) -> {
                             try {
                                 logger.info("Starting token validation...");
                                 System.out.println("Starting token validation...");
 
-                                // Log session ID for debugging
                                 HttpSession session = request.getSession(false);
                                 if (session != null) {
                                     logger.info("Session ID: {}", session.getId());
@@ -77,6 +79,12 @@ public class SecurityConfig {
                                     logger.info("User authenticated successfully: {}", authentication.getName());
                                     System.out.println("User authenticated successfully: " + authentication.getName());
 
+                                    if (authentication.getPrincipal() instanceof OidcUser) {
+                                        OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
+                                        logger.info("ID Token claims: {}", oidcUser.getClaims());
+                                        System.out.println("ID Token claims: " + oidcUser.getClaims());
+                                    }
+
                                     authentication.getAuthorities().forEach(authority -> {
                                         logger.info("Authority: {}", authority);
                                         System.out.println("Authority: " + authority);
@@ -85,13 +93,6 @@ public class SecurityConfig {
                                     if (authentication.getDetails() != null) {
                                         logger.info("Authentication details: {}", authentication.getDetails());
                                         System.out.println("Authentication details: " + authentication.getDetails());
-                                    }
-
-                                    if (authentication.getCredentials() != null) {
-                                        logger.info("Credentials type: {}",
-                                                authentication.getCredentials().getClass().getName());
-                                        System.out.println("Credentials type: "
-                                                + authentication.getCredentials().getClass().getName());
                                     }
                                 } else {
                                     throw new OAuth2AuthenticationException(
@@ -113,7 +114,6 @@ public class SecurityConfig {
                             System.out.println("AUTH FAILED - Error type: " + exception.getClass().getName());
                             System.out.println("AUTH FAILED - Error message: " + exception.getMessage());
 
-                            // Log session ID for debugging
                             HttpSession session = request.getSession(false);
                             if (session != null) {
                                 logger.info("Session ID: {}", session.getId());
@@ -137,6 +137,29 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID"));
 
         return http.build();
+    }
+
+    private OidcUser oidcUserService(OidcUserRequest userRequest) {
+        try {
+            logger.info("Processing OIDC user request for client ID: {}",
+                    userRequest.getClientRegistration().getClientId());
+            System.out.println(
+                    "Processing OIDC user request for client ID: " + userRequest.getClientRegistration().getClientId());
+
+            // Log token value for debugging (be careful with this in production)
+            logger.info("ID Token: {}", userRequest.getIdToken().getTokenValue());
+            System.out.println("ID Token: " + userRequest.getIdToken().getTokenValue());
+
+            // Create default OIDC user service
+            OAuth2UserService<OidcUserRequest, OidcUser> delegate = new org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService();
+
+            // Get the user and return
+            return delegate.loadUser(userRequest);
+        } catch (Exception e) {
+            logger.error("Error processing OIDC user request: " + e.getMessage(), e);
+            System.out.println("Error processing OIDC user request: " + e.getMessage());
+            throw e;
+        }
     }
 
     private OAuth2AuthorizationRequestResolver customizeAuthorizationRequestResolver(
@@ -172,6 +195,8 @@ public class SecurityConfig {
             parameters.put("resource", "https://hcliamtrainingb2c.onmicrosoft.com");
             parameters.put("response_mode", "form_post");
             parameters.put("p", "B2C_1A_FG_HCL_SIGNUP_SIGNIN");
+            parameters.put("nonce", java.util.UUID.randomUUID().toString()); // Add nonce for OIDC
+            parameters.put("state", java.util.UUID.randomUUID().toString()); // Add state for CSRF
 
             // Don't override these as they should come from the client registration
             if (!parameters.containsKey("scope")) {
