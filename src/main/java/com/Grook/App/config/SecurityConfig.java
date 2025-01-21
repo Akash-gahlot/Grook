@@ -16,8 +16,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -66,6 +66,13 @@ public class SecurityConfig {
                                 logger.info("Starting token validation...");
                                 System.out.println("Starting token validation...");
 
+                                // Log session ID for debugging
+                                HttpSession session = request.getSession(false);
+                                if (session != null) {
+                                    logger.info("Session ID: {}", session.getId());
+                                    System.out.println("Session ID: " + session.getId());
+                                }
+
                                 if (authentication.getPrincipal() != null) {
                                     logger.info("User authenticated successfully: {}", authentication.getName());
                                     System.out.println("User authenticated successfully: " + authentication.getName());
@@ -105,6 +112,13 @@ public class SecurityConfig {
 
                             System.out.println("AUTH FAILED - Error type: " + exception.getClass().getName());
                             System.out.println("AUTH FAILED - Error message: " + exception.getMessage());
+
+                            // Log session ID for debugging
+                            HttpSession session = request.getSession(false);
+                            if (session != null) {
+                                logger.info("Session ID: {}", session.getId());
+                                System.out.println("Session ID: " + session.getId());
+                            }
 
                             logger.info("Request URI: {}", request.getRequestURI());
                             logger.info("Request Parameters: {}", request.getParameterMap());
