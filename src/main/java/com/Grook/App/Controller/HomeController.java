@@ -20,22 +20,25 @@ public class HomeController {
             Object principal = authentication.getPrincipal();
             if (principal instanceof OidcUser) {
                 OidcUser oidcUser = (OidcUser) principal;
-                // Try to get name from various claims
-                name = oidcUser.getClaim("given_name");
+                logger.info("All claims from token: {}", oidcUser.getClaims());
+                System.out.println("All claims from token: " + oidcUser.getClaims());
+
+                // Get the name from given_name claim
+                name = (String) oidcUser.getClaims().get("given_name");
+                logger.info("Extracted given_name: {}", name);
+                System.out.println("Extracted given_name: " + name);
+
                 if (name == null) {
-                    name = oidcUser.getClaim("name");
+                    name = (String) oidcUser.getClaims().get("name");
+                    logger.info("Falling back to name claim: {}", name);
                 }
-                if (name == null) {
-                    name = oidcUser.getPreferredUsername();
-                }
-                if (name == null) {
-                    name = oidcUser.getSubject();
-                }
-                logger.info("Token claims: {}", oidcUser.getClaims());
-                logger.info("Authenticated user name: {}", name);
+            } else {
+                logger.warn("Principal is not an instance of OidcUser: {}", principal.getClass());
+                System.out.println("Principal is not an instance of OidcUser: " + principal.getClass());
             }
         } else {
             logger.info("User not authenticated, using default name");
+            System.out.println("User not authenticated, using default name");
         }
 
         model.addAttribute("name", name);

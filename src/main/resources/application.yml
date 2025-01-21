@@ -22,7 +22,8 @@ spring:
             token-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/token
             jwk-set-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
             user-info-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/openid/userinfo
-            user-name-attribute: given_name
+            user-name-attribute: name
+            response-type: code id_token
 
 server:
   port: ${PORT:8080}
