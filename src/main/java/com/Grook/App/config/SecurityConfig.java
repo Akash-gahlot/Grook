@@ -151,17 +151,26 @@ public class SecurityConfig {
         System.out.println("Customizing authorization request for client ID: " + auth2Request.getClientId());
 
         Consumer<Map<String, Object>> parametersConsumer = parameters -> {
+            // Keep original parameters
+            parameters.putAll(auth2Request.getAdditionalParameters());
+
+            // Add B2C specific parameters
             parameters.put("resource", "https://hcliamtrainingb2c.onmicrosoft.com");
             parameters.put("response_mode", "form_post");
             parameters.put("p", "B2C_1A_FG_HCL_SIGNUP_SIGNIN");
-            parameters.put("prompt", "login");
-            parameters.put("scope", "openid profile email");
-            parameters.put("response_type", "code");
-            parameters.put("client_id", "75ff66ff-9993-4668-ae3d-7ade2e9b4364");
 
+            // Don't override these as they should come from the client registration
+            if (!parameters.containsKey("scope")) {
+                parameters.put("scope", "openid profile email");
+            }
+            if (!parameters.containsKey("response_type")) {
+                parameters.put("response_type", "code");
+            }
+
+            // Log all parameters for debugging
             parameters.forEach((key, value) -> {
-                logger.info("Adding parameter {} = {}", key, value);
-                System.out.println("Adding parameter " + key + " = " + value);
+                logger.info("Parameter {} = {}", key, value);
+                System.out.println("Parameter " + key + " = " + value);
             });
         };
 
