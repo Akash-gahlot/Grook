@@ -14,15 +14,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/login", "/error", "/webjars/**").permitAll()
+                        .requestMatchers("/", "/login", "/error", "/webjars/**", "/oauth2/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .defaultSuccessUrl("/home", true))
+                        .defaultSuccessUrl("/home", true)
+                        .failureUrl("/login?error=true"))
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
-                        .clearAuthentication(true)
                         .invalidateHttpSession(true)
+                        .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll());
         return http.build();
