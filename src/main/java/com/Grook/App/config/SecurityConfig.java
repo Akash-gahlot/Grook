@@ -157,7 +157,7 @@ public class SecurityConfig {
             parameters.put("prompt", "login");
             parameters.put("scope", "openid profile email");
             parameters.put("response_type", "code");
-            parameters.put("client_id", "69adbf0a-82b6-46ec-ab83-e9f268cb8fee");
+            parameters.put("client_id", "75ff66ff-9993-4668-ae3d-7ade2e9b4364");
 
             parameters.forEach((key, value) -> {
                 logger.info("Adding parameter {} = {}", key, value);
