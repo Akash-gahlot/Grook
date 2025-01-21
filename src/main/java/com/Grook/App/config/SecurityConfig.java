@@ -36,9 +36,11 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/login/oauth2/code/*"))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/", "/login", "/error", "/webjars/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/", "/login", "/error", "/webjars/**", "/oauth2/**", "/login/oauth2/code/*")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
