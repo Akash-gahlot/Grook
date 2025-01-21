@@ -14,7 +14,6 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,15 +39,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .headers(headers -> headers.frameOptions().disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/home"),
-                                new AntPathRequestMatcher("/error"),
-                                new AntPathRequestMatcher("/login"),
-                                new AntPathRequestMatcher("/oauth2/**"),
-                                new AntPathRequestMatcher("/login/oauth2/code/*"))
-                        .permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().permitAll())
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .oidcUserService(this::oidcUserService))
@@ -71,20 +62,16 @@ public class SecurityConfig {
                     org.springframework.security.core.Authentication authentication)
                     throws IOException, ServletException {
                 System.out.println("=== Authentication Success Handler ===");
-                System.out.println("Authentication class: " + authentication.getClass().getName());
-                System.out.println("Is authenticated: " + authentication.isAuthenticated());
 
                 if (authentication.getPrincipal() instanceof OidcUser) {
                     OidcUser oidcUser = (OidcUser) authentication.getPrincipal();
                     Map<String, Object> claims = oidcUser.getClaims();
-
                     System.out.println("=== Token Claims ===");
                     claims.forEach((key, value) -> System.out.println(key + ": " + value));
 
                     String name = (String) claims.get("given_name");
-                    System.out.println("Extracted name: " + name);
-
                     if (name != null && !name.trim().isEmpty()) {
+                        System.out.println("Setting userName in session: " + name);
                         request.getSession().setAttribute("userName", name);
                     }
                 }
@@ -96,17 +83,9 @@ public class SecurityConfig {
     private OidcUser oidcUserService(OidcUserRequest userRequest) {
         try {
             System.out.println("=== Processing OIDC User Request ===");
-            System.out.println("Client Registration: " + userRequest.getClientRegistration().getRegistrationId());
-
             Map<String, Object> claims = userRequest.getIdToken().getClaims();
             System.out.println("=== ID Token Claims ===");
             claims.forEach((key, value) -> System.out.println(key + ": " + value));
-
-            String name = (String) claims.get("given_name");
-            if (name == null) {
-                name = (String) claims.get("name");
-            }
-            System.out.println("Name from claims: " + name);
 
             return new DefaultOidcUser(
                     AuthorityUtils.createAuthorityList("ROLE_USER"),
