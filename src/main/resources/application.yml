@@ -26,7 +26,10 @@ spring:
 
 server:
   port: ${PORT:8080}
-  forward-headers-strategy: native
+  forward-headers-strategy: NATIVE
+  tomcat:
+    remote-ip-header: x-forwarded-for
+    protocol-header: x-forwarded-proto
   servlet:
     context-path: /
 
