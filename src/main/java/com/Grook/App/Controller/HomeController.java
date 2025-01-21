@@ -15,19 +15,31 @@ public class HomeController {
 
     @GetMapping("/home")
     public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
-        String logMessage = String.format("HOME PAGE ACCESS - User authenticated: %s", principal != null);
-        logger.info(logMessage);
-        System.out.println(logMessage);
+        logger.info("Accessing home page. User authenticated: {}", principal != null);
+        System.out.println("HOME - Accessing home page. User authenticated: " + (principal != null));
 
         if (principal != null) {
-            String name = principal.getAttribute("name");
-            String userLogMessage = String.format("USER INFO - Name: %s, All attributes: %s",
-                    name, principal.getAttributes());
-            logger.info(userLogMessage);
-            System.out.println(userLogMessage);
+            // Log all available attributes
+            principal.getAttributes().forEach((key, value) -> {
+                logger.info("OAuth2 Attribute - {}: {}", key, value);
+                System.out.println("OAuth2 Attribute - " + key + ": " + value);
+            });
 
+            // Get essential attributes
+            String name = principal.getAttribute("name");
+            String email = principal.getAttribute("email");
+            String sub = principal.getAttribute("sub");
+
+            logger.info("User details - Name: {}, Email: {}, Sub: {}", name, email, sub);
+            System.out.println("User details - Name: " + name + ", Email: " + email + ", Sub: " + sub);
+
+            // Add attributes to model
             model.addAttribute("name", name);
+            model.addAttribute("email", email);
+            model.addAttribute("sub", sub);
+            model.addAttribute("attributes", principal.getAttributes());
         } else {
+            logger.warn("No principal found in the request");
             System.out.println("WARNING - No principal found in the request");
         }
 
