@@ -11,6 +11,7 @@ spring:
             scope:
               - openid
               - offline_access
+              - https://hcliamtrainingb2c.onmicrosoft.com/75ff66ff-9993-4668-ae3d-7ade2e9b4364/user.read
             redirect-uri: https://grook-production.up.railway.app/login/oauth2/code/azure
             authorization-grant-type: authorization_code
             client-name: Azure B2C

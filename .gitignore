@@ -24,4 +24,6 @@ target/
 
 ### Application ###
 *.log
-.env
+*.rtf
+Log file.rtf
+logs/
