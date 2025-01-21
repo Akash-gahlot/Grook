@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -50,12 +52,21 @@ public class SecurityConfig {
                                 .authorizationRequestResolver(customizeAuthorizationRequestResolver(resolver)))
                         .successHandler((request, response, authentication) -> {
                             try {
-                                logger.info("Token validation successful");
-                                System.out.println("Token validation successful");
+                                logger.info("Starting token validation...");
+                                System.out.println("Starting token validation...");
 
                                 if (authentication.getPrincipal() != null) {
                                     logger.info("User authenticated successfully: {}", authentication.getName());
                                     System.out.println("User authenticated successfully: " + authentication.getName());
+
+                                    // Log all attributes
+                                    authentication.getAuthorities().forEach(authority -> {
+                                        logger.info("Authority: {}", authority);
+                                        System.out.println("Authority: " + authority);
+                                    });
+                                } else {
+                                    throw new OAuth2AuthenticationException(
+                                            new OAuth2Error("invalid_token", "No principal found", null));
                                 }
 
                                 response.sendRedirect("/home");
@@ -68,8 +79,15 @@ public class SecurityConfig {
                         .failureHandler((request, response, exception) -> {
                             logger.error("AUTH FAILED - Error type: " + exception.getClass().getName());
                             logger.error("AUTH FAILED - Error message: " + exception.getMessage());
+                            logger.error("AUTH FAILED - Stack trace: ", exception);
+
                             System.out.println("AUTH FAILED - Error type: " + exception.getClass().getName());
                             System.out.println("AUTH FAILED - Error message: " + exception.getMessage());
+
+                            // Log request details for debugging
+                            logger.info("Request URI: {}", request.getRequestURI());
+                            logger.info("Request Parameters: {}", request.getParameterMap());
+
                             response.sendRedirect("/login?error=true");
                         }))
                 .logout(logout -> logout
@@ -106,6 +124,7 @@ public class SecurityConfig {
         Consumer<Map<String, Object>> parametersConsumer = parameters -> {
             parameters.put("resource", "https://hcliamtrainingb2c.onmicrosoft.com");
             parameters.put("response_mode", "form_post");
+            parameters.put("p", "B2C_1A_FG_HCL_SIGNUP_SIGNIN"); // Add policy name
         };
 
         return OAuth2AuthorizationRequest.from(auth2Request)
