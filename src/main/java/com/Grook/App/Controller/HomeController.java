@@ -20,13 +20,18 @@ public class HomeController {
             Object principal = authentication.getPrincipal();
             if (principal instanceof OidcUser) {
                 OidcUser oidcUser = (OidcUser) principal;
-                name = oidcUser.getClaim("name");
+                // Try to get name from various claims
+                name = oidcUser.getClaim("given_name");
+                if (name == null) {
+                    name = oidcUser.getClaim("name");
+                }
                 if (name == null) {
                     name = oidcUser.getPreferredUsername();
                 }
                 if (name == null) {
                     name = oidcUser.getSubject();
                 }
+                logger.info("Token claims: {}", oidcUser.getClaims());
                 logger.info("Authenticated user name: {}", name);
             }
         } else {

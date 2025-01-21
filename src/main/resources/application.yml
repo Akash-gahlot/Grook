@@ -10,8 +10,6 @@ spring:
             client-secret: ${AZURE_CLIENT_SECRET}
             scope:
               - openid
-              - offline_access
-              - https://hcliamtrainingb2c.onmicrosoft.com/75ff66ff-9993-4668-ae3d-7ade2e9b4364/user.read
               - profile
               - email
             redirect-uri: https://grook-production.up.railway.app/login/oauth2/code/azure
@@ -24,8 +22,7 @@ spring:
             token-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/token
             jwk-set-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
             user-info-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/openid/userinfo
-            user-name-attribute: sub
-            user-info-authentication-method: header
+            user-name-attribute: given_name
 
 server:
   port: ${PORT:8080}
@@ -48,6 +45,9 @@ logging:
   file:
     name: /dev/stdout
 
+app:
+  home-url: https://grook-production.up.railway.app
+
 ---
 spring:
   config:
@@ -55,6 +55,8 @@ spring:
       on-profile: local
 server:
   port: 8080
+app:
+  home-url: http://localhost:8080
 
 ---
 spring:
@@ -63,3 +65,5 @@ spring:
       on-profile: prod
 server:
   port: ${PORT:8080}
+app:
+  home-url: https://grook-production.up.railway.app
