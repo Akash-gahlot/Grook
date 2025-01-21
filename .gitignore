@@ -27,3 +27,7 @@ target/
 *.rtf
 Log file.rtf
 logs/
+
+### B2C Policies ###
+B2C Policies/
+**/B2C_1A_*.xml

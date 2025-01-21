@@ -24,7 +24,7 @@ spring:
             token-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/token
             jwk-set-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
             user-info-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/openid/userinfo
-            user-name-attribute: name
+            user-name-attribute: sub
             user-info-authentication-method: header
 
 server:
