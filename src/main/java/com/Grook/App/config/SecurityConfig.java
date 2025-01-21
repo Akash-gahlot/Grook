@@ -15,6 +15,8 @@ import org.springframework.security.oauth2.client.web.DefaultOAuth2Authorization
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -36,6 +38,13 @@ public class SecurityConfig {
         final OAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, authorizationRequestBaseUri);
 
+        // Get the Azure B2C client registration
+        ClientRegistration azureClient = clientRegistrationRepository.findByRegistrationId("azure");
+        if (azureClient != null) {
+            logger.info("Found Azure B2C client registration with client ID: {}", azureClient.getClientId());
+            System.out.println("Found Azure B2C client registration with client ID: " + azureClient.getClientId());
+        }
+
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -50,6 +59,8 @@ public class SecurityConfig {
                         .failureUrl("/login?error=true")
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestResolver(customizeAuthorizationRequestResolver(resolver)))
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userAuthoritiesMapper(authorities -> authorities))
                         .successHandler((request, response, authentication) -> {
                             try {
                                 logger.info("Starting token validation...");
@@ -59,11 +70,22 @@ public class SecurityConfig {
                                     logger.info("User authenticated successfully: {}", authentication.getName());
                                     System.out.println("User authenticated successfully: " + authentication.getName());
 
-                                    // Log all attributes
                                     authentication.getAuthorities().forEach(authority -> {
                                         logger.info("Authority: {}", authority);
                                         System.out.println("Authority: " + authority);
                                     });
+
+                                    if (authentication.getDetails() != null) {
+                                        logger.info("Authentication details: {}", authentication.getDetails());
+                                        System.out.println("Authentication details: " + authentication.getDetails());
+                                    }
+
+                                    if (authentication.getCredentials() != null) {
+                                        logger.info("Credentials type: {}",
+                                                authentication.getCredentials().getClass().getName());
+                                        System.out.println("Credentials type: "
+                                                + authentication.getCredentials().getClass().getName());
+                                    }
                                 } else {
                                     throw new OAuth2AuthenticationException(
                                             new OAuth2Error("invalid_token", "No principal found", null));
@@ -84,9 +106,13 @@ public class SecurityConfig {
                             System.out.println("AUTH FAILED - Error type: " + exception.getClass().getName());
                             System.out.println("AUTH FAILED - Error message: " + exception.getMessage());
 
-                            // Log request details for debugging
                             logger.info("Request URI: {}", request.getRequestURI());
                             logger.info("Request Parameters: {}", request.getParameterMap());
+
+                            java.util.Collections.list(request.getHeaderNames()).forEach(headerName -> {
+                                logger.info("Header {}: {}", headerName, request.getHeader(headerName));
+                                System.out.println("Header " + headerName + ": " + request.getHeader(headerName));
+                            });
 
                             response.sendRedirect("/login?error=true");
                         }))
@@ -121,10 +147,22 @@ public class SecurityConfig {
             return null;
         }
 
+        logger.info("Customizing authorization request for client ID: {}", auth2Request.getClientId());
+        System.out.println("Customizing authorization request for client ID: " + auth2Request.getClientId());
+
         Consumer<Map<String, Object>> parametersConsumer = parameters -> {
             parameters.put("resource", "https://hcliamtrainingb2c.onmicrosoft.com");
             parameters.put("response_mode", "form_post");
-            parameters.put("p", "B2C_1A_FG_HCL_SIGNUP_SIGNIN"); // Add policy name
+            parameters.put("p", "B2C_1A_FG_HCL_SIGNUP_SIGNIN");
+            parameters.put("prompt", "login");
+            parameters.put("scope", "openid profile email");
+            parameters.put("response_type", "code");
+            parameters.put("client_id", "69adbf0a-82b6-46ec-ab83-e9f268cb8fee");
+
+            parameters.forEach((key, value) -> {
+                logger.info("Adding parameter {} = {}", key, value);
+                System.out.println("Adding parameter " + key + " = " + value);
+            });
         };
 
         return OAuth2AuthorizationRequest.from(auth2Request)
