@@ -7,23 +7,28 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class HomeController {
     private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
     @GetMapping({ "/", "/home" })
-    public String home(Model model, Authentication authentication) {
+    public String home(Model model, Authentication authentication, HttpSession session) {
         String name = "Guest";
 
-        System.out.println("=== Starting Home Controller ===");
-        System.out.println("Authentication object present: " + (authentication != null));
+        System.out.println("=== Home Controller ===");
+        System.out.println("Session ID: " + session.getId());
 
-        if (authentication != null) {
-            System.out.println("Is Authenticated: " + authentication.isAuthenticated());
-            System.out.println("Authentication class: " + authentication.getClass().getName());
-            System.out.println("Authentication details: " + authentication.getDetails());
-
+        // First try to get name from session
+        String sessionName = (String) session.getAttribute("userName");
+        if (sessionName != null && !sessionName.trim().isEmpty()) {
+            name = sessionName;
+            System.out.println("Name from session: " + name);
+        }
+        // If no session name, try authentication
+        else if (authentication != null && authentication.isAuthenticated()) {
+            System.out.println("Authentication present and authenticated");
             Object principal = authentication.getPrincipal();
             System.out.println("Principal class: " + (principal != null ? principal.getClass().getName() : "null"));
 
@@ -32,29 +37,19 @@ public class HomeController {
                 System.out.println("=== Token Claims ===");
                 oidcUser.getClaims().forEach((key, value) -> System.out.println(key + ": " + value));
 
-                // Try all possible name claims
                 name = (String) oidcUser.getClaims().get("given_name");
-                System.out.println("Tried given_name: " + name);
+                System.out.println("Name from claims: " + name);
 
                 if (name == null || name.trim().isEmpty()) {
                     name = (String) oidcUser.getClaims().get("name");
-                    System.out.println("Tried name: " + name);
+                    System.out.println("Fallback name from claims: " + name);
                 }
-
-                if (name == null || name.trim().isEmpty()) {
-                    name = oidcUser.getName();
-                    System.out.println("Tried getName(): " + name);
-                }
-
-                System.out.println("Final name value: " + name);
-            } else {
-                System.out.println("Principal is not OidcUser");
             }
         } else {
-            System.out.println("No authentication object present");
+            System.out.println("No authentication or session name found");
         }
 
-        System.out.println("Setting name attribute to: " + name);
+        System.out.println("Final name being set: " + name);
         model.addAttribute("name", name);
         return "home";
     }
