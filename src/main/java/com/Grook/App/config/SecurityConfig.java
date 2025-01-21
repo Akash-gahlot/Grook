@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Configuration
 @EnableWebSecurity
@@ -38,21 +39,38 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/login?error=true")
                         .successHandler((request, response, authentication) -> {
-                            String userName = authentication.getName();
-                            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+                            try {
+                                String userName = authentication.getName();
+                                OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
 
-                            // Use both logger and System.out for critical logs
-                            String logMessage = String.format("AUTH SUCCESS - User: %s, Attributes: %s",
-                                    userName, oauth2User.getAttributes());
-                            logger.info(logMessage);
-                            System.out.println(logMessage);
+                                // Log request details
+                                logRequestDetails(request);
 
-                            response.sendRedirect("/home");
+                                // Log authentication details
+                                String logMessage = String.format("AUTH SUCCESS - User: %s, Attributes: %s",
+                                        userName, oauth2User.getAttributes());
+                                logger.info(logMessage);
+                                System.out.println(logMessage);
+
+                                response.sendRedirect("/home");
+                            } catch (Exception e) {
+                                logger.error("Error in success handler: " + e.getMessage(), e);
+                                System.out.println("Error in success handler: " + e.getMessage());
+                                response.sendRedirect("/login?error=true");
+                            }
                         })
                         .failureHandler((request, response, exception) -> {
-                            String logMessage = String.format("AUTH FAILED - Error: %s", exception.getMessage());
-                            logger.error(logMessage);
-                            System.out.println(logMessage);
+                            // Log request details
+                            logRequestDetails(request);
+
+                            // Log detailed error information
+                            logger.error("AUTH FAILED - Error type: " + exception.getClass().getName());
+                            logger.error("AUTH FAILED - Error message: " + exception.getMessage());
+                            logger.error("AUTH FAILED - Stack trace: ", exception);
+
+                            // Log in console for immediate visibility
+                            System.out.println("AUTH FAILED - Error type: " + exception.getClass().getName());
+                            System.out.println("AUTH FAILED - Error message: " + exception.getMessage());
 
                             response.sendRedirect("/login?error=true");
                         }))
@@ -65,5 +83,18 @@ public class SecurityConfig {
                     System.out.println("LOGOUT - User logged out successfully");
                 });
         return http.build();
+    }
+
+    private void logRequestDetails(HttpServletRequest request) {
+        logger.info("Request URI: " + request.getRequestURI());
+        logger.info("Request URL: " + request.getRequestURL());
+        logger.info("Query String: " + request.getQueryString());
+        logger.info("Remote Address: " + request.getRemoteAddr());
+        logger.info("Headers:");
+        java.util.Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            logger.info(headerName + ": " + request.getHeader(headerName));
+        }
     }
 }

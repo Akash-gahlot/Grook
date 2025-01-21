@@ -6,7 +6,7 @@ spring:
       client:
         registration:
           azure:
-            client-id: 75ff66ff-9993-4668-ae3d-7ade2e9b4364 # Temporarily hardcode for testing
+            client-id: 75ff66ff-9993-4668-ae3d-7ade2e9b4364
             client-secret: ${AZURE_CLIENT_SECRET}
             scope:
               - openid
@@ -32,12 +32,14 @@ server:
 # Logging configuration
 logging:
   level:
-    '[com.Grook.App]': INFO
-    '[org.springframework.security]': INFO
-    '[org.springframework.security.oauth2]': DEBUG
+    root: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    com.Grook.App: DEBUG
   # Configure console output
   pattern:
-    console: '[%d{yyyy-MM-dd HH:mm:ss}] [${spring.application.name}] [%X{traceId:-}] [%thread] %-5level %logger{36} - %msg%n'
+    console: '[%d{yyyy-MM-dd HH:mm:ss}] [${spring.application.name}] [%thread] %-5level %logger{36} - %msg%n'
   # Ensure logs go to console
   file:
     name: /dev/stdout
