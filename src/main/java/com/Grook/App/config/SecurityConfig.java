@@ -10,10 +10,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
+import java.util.function.Consumer;
 
 @Configuration
 @EnableWebSecurity
@@ -28,6 +30,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String authorizationRequestBaseUri = "/oauth2/authorization";
+        final OAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository, authorizationRequestBaseUri);
+
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
@@ -38,19 +44,17 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/login?error=true")
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(customizeAuthorizationRequestResolver(resolver)))
                         .successHandler((request, response, authentication) -> {
                             try {
-                                String userName = authentication.getName();
-                                OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+                                logger.info("Token validation successful");
+                                System.out.println("Token validation successful");
 
-                                // Log request details
-                                logRequestDetails(request);
-
-                                // Log authentication details
-                                String logMessage = String.format("AUTH SUCCESS - User: %s, Attributes: %s",
-                                        userName, oauth2User.getAttributes());
-                                logger.info(logMessage);
-                                System.out.println(logMessage);
+                                if (authentication.getPrincipal() != null) {
+                                    logger.info("User authenticated successfully: {}", authentication.getName());
+                                    System.out.println("User authenticated successfully: " + authentication.getName());
+                                }
 
                                 response.sendRedirect("/home");
                             } catch (Exception e) {
@@ -60,41 +64,50 @@ public class SecurityConfig {
                             }
                         })
                         .failureHandler((request, response, exception) -> {
-                            // Log request details
-                            logRequestDetails(request);
-
-                            // Log detailed error information
                             logger.error("AUTH FAILED - Error type: " + exception.getClass().getName());
                             logger.error("AUTH FAILED - Error message: " + exception.getMessage());
-                            logger.error("AUTH FAILED - Stack trace: ", exception);
-
-                            // Log in console for immediate visibility
                             System.out.println("AUTH FAILED - Error type: " + exception.getClass().getName());
                             System.out.println("AUTH FAILED - Error message: " + exception.getMessage());
-
                             response.sendRedirect("/login?error=true");
                         }))
-                .logout(logout -> {
-                    logout.logoutSuccessUrl("/")
-                            .invalidateHttpSession(true)
-                            .clearAuthentication(true)
-                            .deleteCookies("JSESSIONID")
-                            .permitAll();
-                    System.out.println("LOGOUT - User logged out successfully");
-                });
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID"));
+
         return http.build();
     }
 
-    private void logRequestDetails(HttpServletRequest request) {
-        logger.info("Request URI: " + request.getRequestURI());
-        logger.info("Request URL: " + request.getRequestURL());
-        logger.info("Query String: " + request.getQueryString());
-        logger.info("Remote Address: " + request.getRemoteAddr());
-        logger.info("Headers:");
-        java.util.Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            logger.info(headerName + ": " + request.getHeader(headerName));
+    private OAuth2AuthorizationRequestResolver customizeAuthorizationRequestResolver(
+            OAuth2AuthorizationRequestResolver resolver) {
+        return new OAuth2AuthorizationRequestResolver() {
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+                OAuth2AuthorizationRequest auth2Request = resolver.resolve(request);
+                return auth2Request != null ? customizeAuthorizationRequest(auth2Request) : null;
+            }
+
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
+                OAuth2AuthorizationRequest auth2Request = resolver.resolve(request, clientRegistrationId);
+                return auth2Request != null ? customizeAuthorizationRequest(auth2Request) : null;
+            }
+        };
+    }
+
+    private OAuth2AuthorizationRequest customizeAuthorizationRequest(OAuth2AuthorizationRequest auth2Request) {
+        if (auth2Request == null) {
+            return null;
         }
+
+        Consumer<Map<String, Object>> parametersConsumer = parameters -> {
+            parameters.put("resource", "https://hcliamtrainingb2c.onmicrosoft.com");
+            parameters.put("response_mode", "form_post");
+        };
+
+        return OAuth2AuthorizationRequest.from(auth2Request)
+                .additionalParameters(parametersConsumer)
+                .build();
     }
 }
