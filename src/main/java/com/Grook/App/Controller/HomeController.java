@@ -16,31 +16,45 @@ public class HomeController {
     public String home(Model model, Authentication authentication) {
         String name = "Guest";
 
-        if (authentication != null && authentication.isAuthenticated()) {
+        System.out.println("=== Starting Home Controller ===");
+        System.out.println("Authentication object present: " + (authentication != null));
+
+        if (authentication != null) {
+            System.out.println("Is Authenticated: " + authentication.isAuthenticated());
+            System.out.println("Authentication class: " + authentication.getClass().getName());
+            System.out.println("Authentication details: " + authentication.getDetails());
+
             Object principal = authentication.getPrincipal();
+            System.out.println("Principal class: " + (principal != null ? principal.getClass().getName() : "null"));
+
             if (principal instanceof OidcUser) {
                 OidcUser oidcUser = (OidcUser) principal;
-                logger.info("All claims from token: {}", oidcUser.getClaims());
-                System.out.println("All claims from token: " + oidcUser.getClaims());
+                System.out.println("=== Token Claims ===");
+                oidcUser.getClaims().forEach((key, value) -> System.out.println(key + ": " + value));
 
-                // Get the name from given_name claim
+                // Try all possible name claims
                 name = (String) oidcUser.getClaims().get("given_name");
-                logger.info("Extracted given_name: {}", name);
-                System.out.println("Extracted given_name: " + name);
+                System.out.println("Tried given_name: " + name);
 
-                if (name == null) {
+                if (name == null || name.trim().isEmpty()) {
                     name = (String) oidcUser.getClaims().get("name");
-                    logger.info("Falling back to name claim: {}", name);
+                    System.out.println("Tried name: " + name);
                 }
+
+                if (name == null || name.trim().isEmpty()) {
+                    name = oidcUser.getName();
+                    System.out.println("Tried getName(): " + name);
+                }
+
+                System.out.println("Final name value: " + name);
             } else {
-                logger.warn("Principal is not an instance of OidcUser: {}", principal.getClass());
-                System.out.println("Principal is not an instance of OidcUser: " + principal.getClass());
+                System.out.println("Principal is not OidcUser");
             }
         } else {
-            logger.info("User not authenticated, using default name");
-            System.out.println("User not authenticated, using default name");
+            System.out.println("No authentication object present");
         }
 
+        System.out.println("Setting name attribute to: " + name);
         model.addAttribute("name", name);
         return "home";
     }
