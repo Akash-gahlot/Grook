@@ -20,13 +20,12 @@ spring:
             provider: azure-b2c
         provider:
           azure-b2c:
-            issuer:https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/v2.0/
-            authorization-uri:https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/authorize
-            token-uri:https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/token
-            jwk-set-uri:https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
-            user-info-uri:https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/openid/userinfo
-            user-name-attribute:name
-            user-info-authentication-method:header
+            authorization-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/authorize
+            token-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/token
+            jwk-set-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
+            user-info-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/openid/userinfo
+            user-name-attribute: name
+            user-info-authentication-method: header
 
 server:
   port: ${PORT:8080}
