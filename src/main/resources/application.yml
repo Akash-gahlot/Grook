@@ -22,8 +22,6 @@ spring:
             jwk-set-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
             user-info-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/openid/userinfo
             user-name-attribute: name
-            user-info-authentication-method: header
-            client-authentication-method: post
 
 server:
   port: ${PORT:8080}
@@ -33,10 +31,13 @@ server:
 
 logging:
   level:
+    root: INFO
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     org.springframework.oauth2: DEBUG
-    org.springframework.boot.autoconfigure: DEBUG
+    com.Grook.App: DEBUG # This will show our custom logs
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
 
 ---
 spring:
