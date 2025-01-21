@@ -29,15 +29,18 @@ server:
   servlet:
     context-path: /
 
+# Logging configuration
 logging:
   level:
-    root: INFO
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.oauth2: DEBUG
-    com.Grook.App: DEBUG # This will show our custom logs
+    '[com.Grook.App]': INFO
+    '[org.springframework.security]': INFO
+    '[org.springframework.security.oauth2]': DEBUG
+  # Configure console output
   pattern:
-    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+    console: '[%d{yyyy-MM-dd HH:mm:ss}] [${spring.application.name}] [%X{traceId:-}] [%thread] %-5level %logger{36} - %msg%n'
+  # Ensure logs go to console
+  file:
+    name: /dev/stdout
 
 ---
 spring:

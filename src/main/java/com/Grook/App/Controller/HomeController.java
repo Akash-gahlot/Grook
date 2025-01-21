@@ -15,14 +15,20 @@ public class HomeController {
 
     @GetMapping("/home")
     public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
-        logger.info("Accessing home page. User authenticated: {}", principal != null);
+        String logMessage = String.format("HOME PAGE ACCESS - User authenticated: %s", principal != null);
+        logger.info(logMessage);
+        System.out.println(logMessage);
 
         if (principal != null) {
             String name = principal.getAttribute("name");
-            logger.info("User name from principal: {}", name);
+            String userLogMessage = String.format("USER INFO - Name: %s, All attributes: %s",
+                    name, principal.getAttributes());
+            logger.info(userLogMessage);
+            System.out.println(userLogMessage);
+
             model.addAttribute("name", name);
         } else {
-            logger.warn("No principal found in the request");
+            System.out.println("WARNING - No principal found in the request");
         }
 
         return "home";

@@ -38,10 +38,23 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/home", true)
                         .failureUrl("/login?error=true")
                         .successHandler((request, response, authentication) -> {
-                            logger.info("Authentication successful for user: {}", authentication.getName());
+                            String userName = authentication.getName();
                             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-                            logger.info("User attributes received: {}", oauth2User.getAttributes());
+
+                            // Use both logger and System.out for critical logs
+                            String logMessage = String.format("AUTH SUCCESS - User: %s, Attributes: %s",
+                                    userName, oauth2User.getAttributes());
+                            logger.info(logMessage);
+                            System.out.println(logMessage);
+
                             response.sendRedirect("/home");
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            String logMessage = String.format("AUTH FAILED - Error: %s", exception.getMessage());
+                            logger.error(logMessage);
+                            System.out.println(logMessage);
+
+                            response.sendRedirect("/login?error=true");
                         }))
                 .logout(logout -> {
                     logout.logoutSuccessUrl("/")
@@ -49,7 +62,7 @@ public class SecurityConfig {
                             .clearAuthentication(true)
                             .deleteCookies("JSESSIONID")
                             .permitAll();
-                    logger.info("User logged out successfully");
+                    System.out.println("LOGOUT - User logged out successfully");
                 });
         return http.build();
     }
