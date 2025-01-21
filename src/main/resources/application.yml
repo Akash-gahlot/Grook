@@ -17,10 +17,10 @@ spring:
             provider: azure-b2c
         provider:
           azure-b2c:
-            authorization-uri: ${AZURE_AUTH_URI}
-            token-uri: ${AZURE_TOKEN_URI}
+            authorization-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/authorize
+            token-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/token
             jwk-set-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/discovery/v2.0/keys
-            user-info-uri: ${AZURE_USER_INFO_URI}
+            user-info-uri: https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/openid/userinfo
             user-name-attribute: name
 
 server:
@@ -33,6 +33,7 @@ logging:
   level:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+    org.springframework.oauth2: DEBUG
 
 ---
 spring:
