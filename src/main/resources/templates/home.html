@@ -26,10 +26,30 @@
             margin-bottom: 1rem;
         }
     </style>
+    <script>
+        window.onload = function() {
+            // Check for id_token in URL fragment
+            const hash = window.location.hash;
+            if (hash && hash.includes('id_token=')) {
+                const token = hash.split('id_token=')[1];
+                // Decode the token (it's base64 encoded)
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('Token payload:', payload);
+                
+                // Get given_name from token
+                const name = payload.given_name;
+                if (name) {
+                    // Update the displayed name
+                    document.getElementById('userName').textContent = name;
+                    console.log('Updated name to:', name);
+                }
+            }
+        };
+    </script>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome, <span th:text="${name}">User</span>!</h1>
+        <h1>Welcome, <span id="userName" th:text="${name}">User</span>!</h1>
     </div>
 </body>
 </html> 
