@@ -25,6 +25,19 @@
             color: #333;
             margin-bottom: 1rem;
         }
+        .logout-btn {
+            display: none;
+            margin-top: 1rem;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .logout-btn.show {
+            display: inline-block;
+        }
     </style>
     <script>
         window.onload = function() {
@@ -42,14 +55,23 @@
                     // Update the displayed name
                     document.getElementById('userName').textContent = name;
                     console.log('Updated name to:', name);
+                    // Show the sign-out button
+                    document.getElementById('logoutBtn').classList.add('show');
                 }
             }
         };
+
+        function logout() {
+            // Replace <policy-name> with your actual policy name
+            const logoutUrl = 'https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/B2C_1A_FG_HCL_SIGNUP_SIGNIN/oauth2/v2.0/logout?p=B2C_1A_FG_HCL_SIGNUP_SIGNIN&post_logout_redirect_uri=https://grook-production.up.railway.app/';
+            window.location.href = logoutUrl;
+        }
     </script>
 </head>
 <body>
     <div class="container">
         <h1>Welcome, <span id="userName" th:text="${name}">User</span>!</h1>
+        <button id="logoutBtn" class="logout-btn" onclick="logout()">Sign Out</button>
     </div>
 </body>
-</html> 
+</html>
