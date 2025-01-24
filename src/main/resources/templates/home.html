@@ -93,11 +93,15 @@
         function signIn() {
             // Placeholder - URL will be provided later
             alert('Sign In URL will be added');
+            const signInUrl = 'https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1A_FG_HCL_SIGNUP_SIGNIN&client_id=75ff66ff-9993-4668-ae3d-7ade2e9b4364&nonce=defaultNonce&redirect_uri=https%3A%2F%2Fgrook-production.up.railway.app%2F&scope=openid&response_type=id_token&prompt=login';
+            window.location.href = signInUrl;
         }
 
         function signUp() {
             // Placeholder - URL will be provided later
-            alert('Sign Up URL will be added');
+            //alert('Sign Up URL will be added');
+            const signUpUrl = 'https://hcliamtrainingb2c.b2clogin.com/hcliamtrainingb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=B2C_1A_AKASH_SIGNUP_SIGNIN&client_id=75ff66ff-9993-4668-ae3d-7ade2e9b4364&nonce=defaultNonce&redirect_uri=https%3A%2F%2Fgrook-production.up.railway.app%2F&scope=openid&response_type=id_token&prompt=login';
+            window.location.href = signUpUrl;
         }
 
         function updateProfile() {
@@ -108,6 +112,7 @@
         function resetPassword() {
             // Placeholder - URL will be provided later
             alert('Password Reset URL will be added');
+            
         }
 
         function logout() {
